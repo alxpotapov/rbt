@@ -14,9 +14,6 @@ func (t *Tree) Insert(key string, value interface{}) {
 }
 
 func (t *Tree) String() string {
-	if t.root == nil {
-		return "()"
-	}
 	return t.root.String()
 }
 
