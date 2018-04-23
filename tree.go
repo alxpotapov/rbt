@@ -38,8 +38,8 @@ func(t *Tree) checkViolation()error {
 		return fmt.Errorf("property 4 is violated: if a node is red, then both its children should be black")
 	}
 	// property 5
-	lh := t.getHeight(t.root.child[left], left)
-	rh := t.getHeight(t.root.child[right], right)
+	lh := t.getHeight(t.root, left)
+	rh := t.getHeight(t.root, right)
 	if lh != rh {
 		return fmt.Errorf("property 5 is violated: from node to leaves different height l= %d, r = %d", lh, rh)
 	}
