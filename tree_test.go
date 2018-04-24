@@ -20,7 +20,7 @@ func TestNode_Insert(t *testing.T) {
 	tree.Insert("00", 0)
 	tree.Insert("10", 10)
 	tree.Insert("11", 11)
-	if err := tree.checkViolation(); err != nil {
+	if err := tree.root.checkViolation(); err != nil {
 		t.Fatal(err)
 	}
 	t.Log(tree.String())

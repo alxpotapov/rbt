@@ -12,16 +12,9 @@ type color int
 
 const (
 	black color = iota
-	red   color = iota
+	red
 )
-
-type child int
-
-const (
-	left  child = 0
-	right child = 1
-)
-
+// String - color as string
 func (c color) String() string {
 	if c == black {
 		return "b"
@@ -29,13 +22,20 @@ func (c color) String() string {
 	return "r"
 }
 
+type child int
+
+const (
+	left  child  = iota
+	right
+)
+
 func (c child) other() child {
 	if c == right {
 		return left
 	}
 	return right
 }
-
+// String - child as string
 func (c child) String() string {
 	if c == right {
 		return "r"
@@ -43,7 +43,7 @@ func (c child) String() string {
 	return "l"
 }
 
-// Node contains the key as string, value as interface{} and 2 pointers to his children
+// Node contains the key as string, value as interface{}
 type Node struct {
 	color color
 	child []*Node
@@ -51,7 +51,7 @@ type Node struct {
 	Value interface{}
 }
 
-func NewNode(key string, value interface{}) *Node {
+func newNode(key string, value interface{}) *Node {
 	return &Node{
 		Key:   key,
 		Value: value,
@@ -63,7 +63,7 @@ func NewNode(key string, value interface{}) *Node {
 // Insert a key and value into a sorted tree
 func (n *Node) Insert(key string, value interface{}) *Node {
 	if n == nil {
-		return NewNode(key, value)
+		return newNode(key, value)
 	}
 	comp := strings.Compare(n.Key, key)
 	switch {
@@ -79,6 +79,7 @@ func (n *Node) Insert(key string, value interface{}) *Node {
 	return n
 }
 
+// String - show tree as a string
 func (n *Node) String() string {
 	if n == nil {
 		return "()"
@@ -133,4 +134,58 @@ func (n *Node) isRed() bool {
 	return (n != nil) && (n.color == red)
 }
 
+
+func(n *Node) checkViolation()error {
+	if n == nil {
+		return fmt.Errorf("tree is empty")
+	}
+	// property 2
+	if n.color != black {
+		return fmt.Errorf("property 2 is violated: the root of the tree should be black")
+	}
+	// property 3
+	node := newNode("key", "value")
+	if (node.child[left] == nil &&  node.child[left].isRed()) || (node.child[right] == nil && node.child[right].isRed()) {
+		return fmt.Errorf("property 3 is violated: every leaf (nil) is black")
+	}
+	// property 4
+	if !n.checkColor(n) {
+		return fmt.Errorf("property 4 is violated: if a node is red, then both its children should be black")
+	}
+	// property 5
+	lh := n.getHeight(n, left)
+	rh := n.getHeight(n, right)
+	if lh != rh {
+		return fmt.Errorf("property 5 is violated: from node to leaves different height l= %d, r = %d", lh, rh)
+	}
+	return nil
+}
+
+func(n *Node)getHeight(node*Node, direction child) int {
+	if node == nil{
+		return 0
+	}
+	if node.color==black {
+		return 1 + n.getHeight(node.child[direction], direction)
+	}
+	return n.getHeight(node.child[direction], direction)
+}
+
+
+func(n *Node)checkColor(node*Node) bool {
+	check := true
+	if node == nil{
+		return check
+	}
+	if node.color==red {
+		return  !node.child[right].isRed() && !node.child[left].isRed()
+	}
+	if node.child[left] != nil {
+		check = check && n.checkColor(node.child[left])
+	}
+	if node.child[right] != nil {
+		check = check && n.checkColor(node.child[right])
+	}
+	return check
+}
 
