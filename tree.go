@@ -1,17 +1,45 @@
 package rbt
+
 // Tree ...
 type Tree struct {
-	root *Node
+	root     *node    // Корневой узел
+	comparer Comparer // Функция сравнения 2-х ключей
 }
-// Insert - insert/update key and value to tree
-func (t *Tree) Insert(key string, value interface{}) {
-	t.root = t.root.Insert(key, value)
+
+// NewTree - создает новое дерево. Аргумент - фнкция сравнения двух ключей
+func NewTree(comparer Comparer) *Tree {
+	return &Tree{
+		comparer: comparer,
+	}
+}
+
+// Insert ...
+func (t *Tree) Insert(key, value interface{}) {
+	t.root = t.root.insert(key, value, t.comparer)
 	t.root.color = black
 }
-// String - tree as string
+
+// Find ...
+func (t *Tree) Find(key interface{}) (interface{}, bool) {
+	return t.root.find(key, t.comparer)
+}
+
+// Delete ...
+func (t *Tree) Delete(key interface{}) {
+	t.root = t.root.delete(key, t.comparer)
+}
+
+// Clear ...
+func (t *Tree) Clear() {
+	t.root = nil
+}
+
+// Empty ...
+func (t *Tree) Empty() bool {
+	return t.root == nil
+}
+
+// String ...
 func (t *Tree) String() string {
 	return t.root.String()
 }
-
-
-
