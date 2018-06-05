@@ -1,6 +1,7 @@
 package rbt
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -79,40 +80,55 @@ func TestInsert(t *testing.T) {
 //}
 
 func TestDelete(t *testing.T) {
+	fmt.Println("Delete A")
 	t.Log("Delete A")
 	n = n.delete("A", comparer)
 	n.color = black
+	n.blacktoken = false
 	t.Log(n)
+	fmt.Println("Delete L")
 	t.Log("Delete L")
 	n = n.delete("L", comparer)
 	n.color = black
+	n.blacktoken = false
 	t.Log(n)
+	fmt.Println("Delete G")
 	t.Log("Delete G")
 	n = n.delete("G", comparer)
 	n.color = black
+	n.blacktoken = false
 	t.Log(n)
+	fmt.Println("Delete O")
 	t.Log("Delete O")
 	n = n.delete("O", comparer)
 	n.color = black
+	n.blacktoken = false
 	t.Log(n)
+	fmt.Println("Delete R")
 	t.Log("Delete R")
 	n = n.delete("R", comparer)
 	n.color = black
+	n.blacktoken = false
 	t.Log(n)
 	t.Log("Delete I")
+	fmt.Println("Delete I")
 	n = n.delete("I", comparer)
+	n.blacktoken = false
 	n.color = black
 	t.Log(n)
-	t.Log("Delete T")
+	fmt.Println("Delete T")
 	n = n.delete("T", comparer)
+	n.blacktoken = false
 	n.color = black
 	t.Log(n)
-	t.Log("Delete H")
+	fmt.Println("Delete H")
 	n = n.delete("H", comparer)
 	n.color = black
+	n.blacktoken = false
 	t.Log(n)
-	t.Log("Delete M")
+	fmt.Println("Delete M")
 	n = n.delete("M", comparer)
 	n.color = black
+	n.blacktoken = false
 	t.Log(n)
 }

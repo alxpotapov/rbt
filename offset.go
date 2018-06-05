@@ -10,3 +10,10 @@ const (
 func (o offset) other() offset {
 	return o ^ right
 }
+
+func (o offset) String() string {
+	if o == left {
+		return "left"
+	}
+	return "right"
+}
