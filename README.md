@@ -1,7 +1,7 @@
-# BST
+# RBT
 ## Usage
 ```
-go get github.com/alxpotapov/bst
+go get github.com/alxpotapov/rbt
 ```
 ## A simple implementation of basic binary search methods:
  * insert key and its value

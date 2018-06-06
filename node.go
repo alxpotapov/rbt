@@ -63,7 +63,7 @@ func (n *node) fixDoubleRedViolation(offset offset) *node {
 
 func (n *node) case1(offset offset) *node {
 	if n.children[offset].red() && n.children[offset.other()].red() {
-		//		fmt.Println("Case 1: recolour")
+		//		fmt.Println("Case 1 (Both children are red): recolour")
 		//		fmt.Println("- src", n)
 		n.color = red
 		n.children[offset].color = black
@@ -74,8 +74,9 @@ func (n *node) case1(offset offset) *node {
 }
 
 func (n *node) case2(offset offset) *node {
-	if n.children[offset].red() && n.children[offset].children[offset.other()].red() {
-		//		fmt.Println("Case 2: rotate", offset, "around child")
+	if n.children[offset].red() &&
+		n.children[offset].children[offset.other()].red() {
+		//		fmt.Println("Case 2 (The parent has an other child and are red): rotate", offset, "around child")
 		//		fmt.Println("- src", n)
 		n.children[offset] = n.children[offset].rotate(offset)
 		//		fmt.Println("- dst", n)
@@ -84,8 +85,9 @@ func (n *node) case2(offset offset) *node {
 }
 
 func (n *node) case3(offset offset) *node {
-	if n.children[offset].red() && n.children[offset].children[offset].red() {
-		//		fmt.Println("Case 3: rotate", offset.other(), "around parent")
+	if n.children[offset].red() &&
+		n.children[offset].children[offset].red() {
+		//		fmt.Println("Case 3 (The parent has a same child and are red): rotate", offset.other(), "around parent")
 		//		fmt.Println("- src", n)
 		n = n.rotate(offset.other())
 		//		fmt.Println("- dst", n)
@@ -99,7 +101,6 @@ func (n *node) case3(offset offset) *node {
 }
 
 func (n *node) delete(key interface{}, comparer Comparer) *node {
-	// если не найден узел, то возвращаем nil
 	if n == nil {
 		return nil
 	}
@@ -125,12 +126,11 @@ func (n *node) fixDoubleBlackViolation(offset offset) *node {
 }
 
 func (n *node) caseA(offset offset) *node {
-	// The sibling is black, but other nephew of the blackTokenNode is black
 	if n.blackToken(offset) &&
 		n.children[offset.other()].black() &&
 		n.children[offset.other()].children[offset.other()].red() {
 
-		//		fmt.Println("Case B: rotate", offset, "around root")
+		//		fmt.Println("Case A (The sibling is black, but hi has other red child): rotate", offset, "around root")
 		//		fmt.Println("- src", n)
 		rootColor := n.color
 		n = n.rotate(offset)
@@ -152,12 +152,11 @@ func (n *node) caseA(offset offset) *node {
 }
 
 func (n *node) caseB(offset offset) *node {
-	// The sibling is black, but one nephew of the blackTokenNode is black
 	if n.blackToken(offset) &&
 		n.children[offset.other()].black() &&
 		n.children[offset.other()].children[offset].red() {
 
-		//		fmt.Println("Case A: rotate", offset, "around nephew")
+		//		fmt.Println("Case B (The sibling is black, but he has same red children): rotate", offset, "around sibling")
 		//		fmt.Println("- src", n)
 		n.children[offset.other()] = n.children[offset.other()].rotate(offset)
 		//		fmt.Println("- dst", n)
@@ -167,17 +166,15 @@ func (n *node) caseB(offset offset) *node {
 		n.children[offset.other()].children[offset.other()].color = red
 		//		fmt.Println("- dst", n)
 		return n.caseA(offset)
-
 	}
 	return n
 }
 
 func (n *node) caseC(offset offset) *node {
-	// The sibling and both nephews of the blackTokenNode are black
 	if n.blackToken(offset) &&
 		n.children[offset.other()].black() {
 
-		//		fmt.Println("Case C: recolour")
+		//		fmt.Println("Case C (The sibling is black): recolour")
 		//		fmt.Println("- src", n)
 		n.color.increment()
 		n.children[offset.other()].color = red
@@ -192,11 +189,10 @@ func (n *node) caseC(offset offset) *node {
 }
 
 func (n *node) caseD(offset offset) *node {
-	// The sibling and both nephews of the blackTokenNode are black
 	if n.blackToken(offset) &&
 		n.children[offset.other()].red() {
 
-		//		fmt.Println("Case D: rotate", offset, "around root")
+		//		fmt.Println("Case D (The sibling is red): rotate", offset, "around root")
 		//		fmt.Println("- src", n)
 		n = n.rotate(offset)
 		//		fmt.Println("- dst", n)
@@ -210,7 +206,7 @@ func (n *node) caseD(offset offset) *node {
 	return n
 }
 
-// String - вывод на экран
+// String ...
 func (n *node) String() string {
 	if n == nil {
 		return ""
@@ -223,30 +219,20 @@ func (n *node) String() string {
 }
 
 func (n *node) splice(comparer Comparer) *node {
-	//Удалить узел и вернуть nil
 	if n.children[left] == nil && n.children[right] == nil {
-		// удаляемый узел может быть как красным, так и черным
-		// если узел черный, то делаем его фиктивным
 		if n.red() {
 			return nil
 		}
 		return fakeBlackNode
 	}
-	//Удалить узел и вернуть его левую подветвь
 	if n.children[right] == nil {
-		// остающийся узел всегда красный и его перекрашиваем
 		n.children[left].color = black
 		return n.children[left]
 	}
-	//Удалить узел и вернуть его правую подветвь
 	if n.children[left] == nil {
-		// остающийся узел всегда красный и его перекрашиваем
 		n.children[right].color = black
 		return n.children[right]
 	}
-	//Заменить значение текущего узла на максимум левой подветви
-	//Удалить максимум левой подветви
-	//Вернуть собранное значение
 	tempNode := n.children[left].findMax()
 	n.key = tempNode.key
 	n.value = tempNode.value
@@ -254,7 +240,7 @@ func (n *node) splice(comparer Comparer) *node {
 	return n.fixDoubleBlackViolation(left)
 }
 
-// findMax - вернуть узел с максимальным значением из левой подветви
+// findMax ...
 func (n *node) findMax() *node {
 	if n.children[right] != nil {
 		n.children[right] = n.children[right].findMax()
@@ -272,7 +258,9 @@ func (n *node) black() bool {
 
 func (n *node) blackToken(offset offset) bool {
 	return n.children[offset] != nil &&
-		(n.children[offset] == fakeBlackNode || n.children[offset].color == doubleBlack)
+		(n.children[offset] == fakeBlackNode ||
+			n.children[offset].color == doubleBlack
+			)
 }
 
 func (n *node) rotate(offset offset) *node {
