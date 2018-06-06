@@ -17,23 +17,6 @@ func newNode(key, value interface{}) *node {
 	return &node{key: key, value: value}
 }
 
-func (n *node) find(key interface{}, comparer Comparer) (interface{}, bool) {
-	// если не найден узел, то возвращаем новый
-	if n == nil {
-		return nil, false
-	}
-	var offset offset
-	switch comparer(n.key, key) {
-	case IsGreater:
-		offset = left
-	case IsLesser:
-		offset = right
-	case AreEqual:
-		return n.value, true
-	}
-	return n.children[offset].find(key, comparer)
-}
-
 func (n *node) insert(key, value interface{}, comparer Comparer) *node {
 	// если не найден узел, то возвращаем новый
 	if n == nil {
@@ -54,11 +37,116 @@ func (n *node) insert(key, value interface{}, comparer Comparer) *node {
 	return n.fixDoubleRedViolation(offset)
 }
 
+func (n *node) find(key interface{}, comparer Comparer) (interface{}, bool) {
+	// если не найден узел, то возвращаем новый
+	if n == nil {
+		return nil, false
+	}
+	var offset offset
+	switch comparer(n.key, key) {
+	case IsGreater:
+		offset = left
+	case IsLesser:
+		offset = right
+	case AreEqual:
+		return n.value, true
+	}
+	return n.children[offset].find(key, comparer)
+}
+
+func (n *node) delete(key interface{}, comparer Comparer) *node {
+	if n == nil {
+		return nil
+	}
+	var offset offset
+	switch comparer(n.key, key) {
+	case IsGreater:
+		offset = left
+	case IsLesser:
+		offset = right
+	case AreEqual:
+		return n.splice(comparer)
+	}
+	n.children[offset] = n.children[offset].delete(key, comparer)
+	return n.fixDoubleBlackViolation(offset)
+}
+
+// String ...
+func (n *node) String() string {
+	if n == nil {
+		return ""
+	}
+	s := ""
+	s += n.children[left].String()
+	s += fmt.Sprintf("%v:%s", n.key, n.color)
+	s += n.children[right].String()
+	return "(" + s + ")"
+}
+
+func (n *node) splice(comparer Comparer) *node {
+	if n.children[left] == nil && n.children[right] == nil {
+		if n.red() {
+			return nil
+		}
+		return fakeBlackNode
+	}
+	if n.children[right] == nil {
+		n.children[left].color = black
+		return n.children[left]
+	}
+	if n.children[left] == nil {
+		n.children[right].color = black
+		return n.children[right]
+	}
+	tempNode := n.children[left].findMax()
+	n.key = tempNode.key
+	n.value = tempNode.value
+	n.children[left] = n.children[left].delete(tempNode.key, comparer)
+	return n.fixDoubleBlackViolation(left)
+}
+
+// findMax ...
+func (n *node) findMax() *node {
+	if n.children[right] != nil {
+		n.children[right] = n.children[right].findMax()
+	}
+	return n
+}
+
 func (n *node) fixDoubleRedViolation(offset offset) *node {
 	return n.
 		case1(offset).
 		case2(offset).
 		case3(offset)
+}
+
+func (n *node) fixDoubleBlackViolation(offset offset) *node {
+	return n.
+		caseA(offset).
+		caseB(offset).
+		caseC(offset).
+		caseD(offset)
+}
+
+func (n *node) red() bool {
+	return n != nil && n.color == red
+}
+
+func (n *node) black() bool {
+	return n != nil && n.color == black
+}
+
+func (n *node) blackToken(offset offset) bool {
+	return n.children[offset] != nil &&
+		(n.children[offset] == fakeBlackNode ||
+			n.children[offset].color == doubleBlack)
+}
+
+func (n *node) rotate(offset offset) *node {
+	root := n.children[offset.other()]
+	n.children[offset.other()] = root.children[offset]
+	root.children[offset] = n
+	return root
 }
 
 func (n *node) case1(offset offset) *node {
@@ -98,31 +186,6 @@ func (n *node) case3(offset offset) *node {
 		//		fmt.Println("- dst", n)
 	}
 	return n
-}
-
-func (n *node) delete(key interface{}, comparer Comparer) *node {
-	if n == nil {
-		return nil
-	}
-	var offset offset
-	switch comparer(n.key, key) {
-	case IsGreater:
-		offset = left
-	case IsLesser:
-		offset = right
-	case AreEqual:
-		return n.splice(comparer)
-	}
-	n.children[offset] = n.children[offset].delete(key, comparer)
-	return n.fixDoubleBlackViolation(offset)
-}
-
-func (n *node) fixDoubleBlackViolation(offset offset) *node {
-	return n.
-		caseA(offset).
-		caseB(offset).
-		caseC(offset).
-		caseD(offset)
 }
 
 func (n *node) caseA(offset offset) *node {
@@ -206,68 +269,55 @@ func (n *node) caseD(offset offset) *node {
 	return n
 }
 
-// String ...
-func (n *node) String() string {
+// property1 - every node has a color that is either red or black
+func (n *node) property1() {
 	if n == nil {
-		return ""
+		return
 	}
-	s := ""
-	s += n.children[left].String()
-	s += fmt.Sprintf("%v:%s", n.key, n.color)
-	s += n.children[right].String()
-	return "(" + s + ")"
+	n.children[left].property1()
+	if !(n.color == red || n.color == black) {
+		panic("Invalid property 1")
+	}
+	n.children[right].property1()
+
 }
 
-func (n *node) splice(comparer Comparer) *node {
-	if n.children[left] == nil && n.children[right] == nil {
+// property2 - Every leaf is black
+func (n *node) property2() {
+	if n == nil {
 		if n.red() {
-			return nil
+			panic("Invalid property 2")
 		}
-		return fakeBlackNode
+		return
 	}
-	if n.children[right] == nil {
-		n.children[left].color = black
-		return n.children[left]
+	n.children[left].property1()
+	n.children[right].property1()
+}
+
+// property3 - Every leaf is black
+func (n *node) property3() {
+	if n == nil {
+		return
 	}
-	if n.children[left] == nil {
-		n.children[right].color = black
-		return n.children[right]
+	n.children[left].property1()
+	n.children[right].property1()
+	if n.red() && (n.children[left].red() || n.children[right].red()) {
+		panic("Invalid property 3")
 	}
-	tempNode := n.children[left].findMax()
-	n.key = tempNode.key
-	n.value = tempNode.value
-	n.children[left] = n.children[left].delete(tempNode.key, comparer)
-	return n.fixDoubleBlackViolation(left)
 }
 
-// findMax ...
-func (n *node) findMax() *node {
-	if n.children[right] != nil {
-		n.children[right] = n.children[right].findMax()
+// property4 - Every path from a given node down to any descendant leaf contains the same number of black nodes
+func (n *node) property4() {
+	if n.blackHeight() == 0 {
+		panic("Invalid property 4")
 	}
-	return n
 }
 
-func (n *node) red() bool {
-	return n != nil && n.color == red
-}
-
-func (n *node) black() bool {
-	return n != nil && n.color == black
-}
-
-func (n *node) blackToken(offset offset) bool {
-	return n.children[offset] != nil &&
-		(n.children[offset] == fakeBlackNode ||
-			n.children[offset].color == doubleBlack
-			)
-}
-
-func (n *node) rotate(offset offset) *node {
-	root := n.children[offset.other()]
-	n.children[offset.other()] = root.children[offset]
-	root.children[offset] = n
-	return root
+// property5 - The root of the tree is black
+func (n *node) property5() {
+	if n.red() {
+		panic("Invalid property 5")
+	}
 }
 
 func (n *node) blackHeight() int {

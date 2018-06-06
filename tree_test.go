@@ -139,7 +139,14 @@ func TestTreeInt(t *testing.T) {
 	for i := 0; i < 1000000; i++ {
 		treeInt.Insert(i, nil)
 	}
-	t.Log(treeInt.root.blackHeight())
+}
+
+func TestPropertyTree(t *testing.T) {
+	treeInt.root.property1()
+	treeInt.root.property2()
+	treeInt.root.property3()
+	treeInt.root.property4()
+	treeInt.root.property5()
 }
 
 func TestFindTreeInt(t *testing.T) {
