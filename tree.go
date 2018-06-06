@@ -27,6 +27,11 @@ func (t *Tree) Find(key interface{}) (interface{}, bool) {
 // Delete ...
 func (t *Tree) Delete(key interface{}) {
 	t.root = t.root.delete(key, t.comparer)
+	if t.root == fakeBlackNode {
+		t.root = nil
+		return
+	}
+	t.root.color = black
 }
 
 // Clear ...
