@@ -5,6 +5,30 @@ import (
 	"testing"
 )
 
+func TestCaseC(t *testing.T) {
+	n := newNode(5, nil)
+	n.children[left] = fakeBlackNode
+	n.children[right] = newNode(6, nil)
+	n.children[right].color = black
+	t.Log(n, n.caseC(left))
+}
+
+func TestCaseA(t *testing.T) {
+	n := newNode(5, nil)
+	n.children[left] = fakeBlackNode
+	n.children[right] = newNode(6, nil)
+	n.children[right].color = black
+	t.Log(n, n.caseA(left))
+}
+
+func TestCaseB(t *testing.T) {
+	n := newNode(5, nil)
+	n.children[left] = fakeBlackNode
+	n.children[right] = newNode(6, nil)
+	n.children[right].color = black
+	t.Log(n, n.caseB(left))
+}
+
 var n *node
 var comparer = func(f, s interface{}) Comparison {
 	intF, ok := f.(string)

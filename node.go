@@ -63,37 +63,37 @@ func (n *node) fixDoubleRedViolation(offset offset) *node {
 
 func (n *node) case1(offset offset) *node {
 	if n.children[offset].red() && n.children[offset.other()].red() {
-		fmt.Println("Case 1: recolour")
-		fmt.Println("- src", n)
+		//		fmt.Println("Case 1: recolour")
+		//		fmt.Println("- src", n)
 		n.color = red
 		n.children[offset].color = black
 		n.children[offset.other()].color = black
-		fmt.Println("- dst", n)
+		//		fmt.Println("- dst", n)
 	}
 	return n
 }
 
 func (n *node) case2(offset offset) *node {
 	if n.children[offset].red() && n.children[offset].children[offset.other()].red() {
-		fmt.Println("Case 2: rotate", offset, "around child")
-		fmt.Println("- src", n)
+		//		fmt.Println("Case 2: rotate", offset, "around child")
+		//		fmt.Println("- src", n)
 		n.children[offset] = n.children[offset].rotate(offset)
-		fmt.Println("- dst", n)
+		//		fmt.Println("- dst", n)
 	}
 	return n
 }
 
 func (n *node) case3(offset offset) *node {
 	if n.children[offset].red() && n.children[offset].children[offset].red() {
-		fmt.Println("Case 3: rotate", offset.other(), "around parent")
-		fmt.Println("- src", n)
+		//		fmt.Println("Case 3: rotate", offset.other(), "around parent")
+		//		fmt.Println("- src", n)
 		n = n.rotate(offset.other())
-		fmt.Println("- dst", n)
-		fmt.Println("and recolour", n)
-		fmt.Println("- src", n)
+		//		fmt.Println("- dst", n)
+		//		fmt.Println("and recolour", n)
+		//		fmt.Println("- src", n)
 		n.color = black
 		n.children[offset.other()].color = red
-		fmt.Println("- dst", n)
+		//		fmt.Println("- dst", n)
 	}
 	return n
 }
@@ -120,65 +120,92 @@ func (n *node) fixDoubleBlackViolation(offset offset) *node {
 	return n.
 		caseA(offset).
 		caseB(offset).
-		caseC(offset)
-}
-
-func (n *node) blackTokenNode(offset offset) bool {
-	return n.children[offset] != nil &&
-		(n.children[offset] == fakeBlackNode || n.children[offset].color == doubleBlack)
+		caseC(offset).
+		caseD(offset)
 }
 
 func (n *node) caseA(offset offset) *node {
-	// The sibling is black, but one nephew of the blackTokenNode is black
-	if n.blackTokenNode(offset) &&
-		n.children[offset.other()].black() &&
-		n.children[offset.other()].children[offset].red() {
-		fmt.Println("Case A: rotate", offset, "around nephew")
-		fmt.Println("- src", n)
-		n.children[offset.other()] = n.children[offset.other()].rotate(offset)
-		fmt.Println("- dst", n)
-		fmt.Println("and recolour", n)
-		fmt.Println("- src", n)
-		n.children[offset.other()].color = black
-		n.children[offset.other()].children[offset.other()].color = red
-		fmt.Println("- dst", n)
-	}
-	return n
-}
-
-func (n *node) caseB(offset offset) *node {
 	// The sibling is black, but other nephew of the blackTokenNode is black
-	if n.blackTokenNode(offset) &&
+	if n.blackToken(offset) &&
 		n.children[offset.other()].black() &&
 		n.children[offset.other()].children[offset.other()].red() {
-		fmt.Println("Case B: rotate", offset, "around root")
-		fmt.Println("- src", n)
+
+		//		fmt.Println("Case B: rotate", offset, "around root")
+		//		fmt.Println("- src", n)
 		rootColor := n.color
 		n = n.rotate(offset)
-		fmt.Println("- dst", n)
-		fmt.Println("and recolour", n)
-		fmt.Println("- src", n)
+		//		fmt.Println("- dst", n)
+		//		fmt.Println("and recolour")
+		//		fmt.Println("- src", n)
 		n.color = rootColor
 		n.children[offset].color, n.children[offset.other()].color = black, black
 		if n.children[offset].children[offset] == fakeBlackNode {
 			n.children[offset].children[offset] = nil
+		} else {
+			n.children[offset].children[offset].color = black
 		}
-		fmt.Println("- dst", n)
+		//		fmt.Println("- dst", n)
+
+	}
+	return n
+
+}
+
+func (n *node) caseB(offset offset) *node {
+	// The sibling is black, but one nephew of the blackTokenNode is black
+	if n.blackToken(offset) &&
+		n.children[offset.other()].black() &&
+		n.children[offset.other()].children[offset].red() {
+
+		//		fmt.Println("Case A: rotate", offset, "around nephew")
+		//		fmt.Println("- src", n)
+		n.children[offset.other()] = n.children[offset.other()].rotate(offset)
+		//		fmt.Println("- dst", n)
+		//		fmt.Println("and recolour", n)
+		//		fmt.Println("- src", n)
+		n.children[offset.other()].color = black
+		n.children[offset.other()].children[offset.other()].color = red
+		//		fmt.Println("- dst", n)
+		return n.caseA(offset)
+
 	}
 	return n
 }
 
 func (n *node) caseC(offset offset) *node {
 	// The sibling and both nephews of the blackTokenNode are black
-	if n.blackTokenNode(offset) && n.children[offset.other()].black() {
-		fmt.Println("Case C: recolour")
-		fmt.Println("- src", n)
+	if n.blackToken(offset) &&
+		n.children[offset.other()].black() {
+
+		//		fmt.Println("Case C: recolour")
+		//		fmt.Println("- src", n)
 		n.color.increment()
 		n.children[offset.other()].color = red
 		if n.children[offset] == fakeBlackNode {
 			n.children[offset] = nil
+		} else {
+			n.children[offset].color = black
 		}
-		fmt.Println("- dst", n)
+		//		fmt.Println("- dst", n)
+	}
+	return n
+}
+
+func (n *node) caseD(offset offset) *node {
+	// The sibling and both nephews of the blackTokenNode are black
+	if n.blackToken(offset) &&
+		n.children[offset.other()].red() {
+
+		//		fmt.Println("Case D: rotate", offset, "around root")
+		//		fmt.Println("- src", n)
+		n = n.rotate(offset)
+		//		fmt.Println("- dst", n)
+		//		fmt.Println("and recolour")
+		//		fmt.Println("- src", n)
+		n.color = black
+		n.children[offset].color = red
+		//		fmt.Println("- dst", n)
+		n.children[offset] = n.children[offset].fixDoubleBlackViolation(offset)
 	}
 	return n
 }
@@ -243,9 +270,36 @@ func (n *node) black() bool {
 	return n != nil && n.color == black
 }
 
+func (n *node) blackToken(offset offset) bool {
+	return n.children[offset] != nil &&
+		(n.children[offset] == fakeBlackNode || n.children[offset].color == doubleBlack)
+}
+
 func (n *node) rotate(offset offset) *node {
 	root := n.children[offset.other()]
 	n.children[offset.other()] = root.children[offset]
 	root.children[offset] = n
 	return root
+}
+
+func (n *node) blackHeight() int {
+	if n == nil {
+		return 1
+	}
+	leftBlackHeight := n.children[left].blackHeight()
+	if leftBlackHeight == 0 {
+		return leftBlackHeight
+	}
+	rightBlackHeight := n.children[right].blackHeight()
+	if rightBlackHeight == 0 {
+		return rightBlackHeight
+	}
+	if leftBlackHeight != rightBlackHeight {
+		return 0
+	} else {
+		if n.black() {
+			leftBlackHeight++
+		}
+		return leftBlackHeight
+	}
 }

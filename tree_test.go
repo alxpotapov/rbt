@@ -116,3 +116,40 @@ func TestTreeEmpty(t *testing.T) {
 		t.Log("tree is empty")
 	}
 }
+
+var treeInt = NewTree(func(f, s interface{}) Comparison {
+	intF, ok := f.(int)
+	if !ok {
+		return IsLesser
+	}
+	intS, ok := s.(int)
+	if !ok {
+		return IsLesser
+	}
+	switch {
+	case intF < intS:
+		return IsLesser
+	case intF > intS:
+		return IsGreater
+	}
+	return AreEqual
+})
+
+func TestTreeInt(t *testing.T) {
+	for i := 0; i < 1000000; i++ {
+		treeInt.Insert(i, nil)
+	}
+	t.Log(treeInt.root.blackHeight())
+}
+
+func TestFindTreeInt(t *testing.T) {
+	for i := 0; i < 1000000; i++ {
+		treeInt.Find(i)
+	}
+}
+
+func TestDeleteTreeInt(t *testing.T) {
+	for i := 0; i < 1000000; i++ {
+		treeInt.Delete(i)
+	}
+}
