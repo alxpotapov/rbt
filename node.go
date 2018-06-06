@@ -108,7 +108,7 @@ func (n *node) splice(comparer Comparer) *node {
 // findMax ...
 func (n *node) findMax() *node {
 	if n.children[right] != nil {
-		n.children[right] = n.children[right].findMax()
+		n = n.children[right].findMax()
 	}
 	return n
 }
